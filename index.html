@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>미라정 보카특강</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+      :root{
+        --fg:#222;--muted:#8a8a8a;--bg:#fafafa;--paper:#fff;--chip:#f2f2f2;
+        --primary:#6366f1;
+        --primary-600:#4f46e5;--choice:#f4f4f5;--choice-hover:#ececee;
+        --ok:#22c55e;--bad:#ef4444;--content-w:860px;
+      }
+      *{box-sizing:border-box}
+      html,body{height:100%}
+      body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 "Inter","Noto Sans KR",system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial}
+      .topbar{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid #eee;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+      /* .brand 스타일 수정: 이미지가 세로 중앙에 오도록 설정 */
+      .brand{margin:0; display:flex; align-items:center; font-weight: 900; font-size: 18px;}
+      .brand img {height: 32px; w-auto; margin-right: 8px;} 
+      .toolbar{display:flex;gap:8px;align-items:center}
+      .chip{background:var(--chip);padding:6px 12px;border-radius:999px;color:#444;font-size:13px;font-weight:600}
+      .btn{border:0;border-radius:12px;padding:12px 18px;cursor:pointer;transition:.18s transform,.18s background,.18s box-shadow;font-weight:800; font-family: inherit;}
+      .btn:hover{transform:translateY(-1px)}
+      .btn:active{transform:translateY(1px)}
+      .btn-primary{background:var(--primary);color:#fff}
+      .btn-primary:hover{background:var(--primary-600)}
+      .btn-ghost{background:#f3f3f3;color:#333}
+      .btn-ghost:hover{background:#e9e9e9}
+      .btn.small{padding:8px 12px;border-radius:10px}
+      .btn.large{padding:14px 24px; font-size:17px;}
+      .btn.xlarge{padding:16px 32px;font-size:18px; width:100%;}
+      
+      .view{display:none;padding:18px; max-width:var(--content-w); margin:0 auto;}
+      .view.active{display:block}
+      
+      .intro-box{background:#fff; border:1px solid #eee; border-radius:20px; padding:40px; text-align:center; margin-top:40px; box-shadow:0 10px 30px rgba(0,0,0,0.05);}
+      .step-list {text-align:left; max-width:300px; margin:20px auto; color:#555;}
+      .step-list li {margin-bottom:8px;}
+
+      .input-group {margin: 20px 0; display:flex; flex-direction:column; gap:10px; align-items:center;}
+      .input-field {padding:12px; border:1px solid #ddd; border-radius:12px; width:100%; max-width:280px; text-align:center; font-size:16px; transition: 0.2s border-color;}
+      .input-field:focus {outline: none; border-color: var(--primary);}
+      /* 입력 에러 애니메이션 */
+      .input-field.error { border-color: var(--bad); animation: shake 0.4s; }
+      @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+      select.input-field {appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em;}
+
+      .quiz-container{max-width:600px; margin:40px auto 0 auto; text-align:center;}
+      .progress-bar{height:6px; background:#eee; border-radius:3px; margin-bottom:20px; overflow:hidden;}
+      .progress-fill{height:100%; background:var(--primary); width:0%; transition:width .3s;}
+      
+      .word-display{font-size:48px; font-weight:900; margin:30px 0 40px 0; word-break: keep-all; line-height:1.2;}
+      .word-display span.label{display:block; font-size:14px; color:var(--muted); font-weight:600; margin-bottom:8px;}
+      
+      .choices{display:grid; grid-template-columns:1fr; gap:12px;}
+      .choice{background:#fff; border:2px solid #eee; border-radius:14px; padding:18px; font-size:18px; font-weight:700; cursor:pointer; transition:.15s;}
+      .choice:hover{background:#f9fafb; border-color:#d1d5db;}
+      .choice.correct{background:#ecfdf5; border-color:var(--ok); color:var(--ok);}
+      .choice.wrong{background:#fef2f2; border-color:var(--bad); color:var(--bad);}
+      
+      .result-view{text-align:center; padding-top:60px;}
+      .score-circle{width:120px; height:120px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:900; margin:0 auto 24px auto;}
+      
+      /* 모달 스타일 */
+      .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100; opacity:0; pointer-events:none; transition:.2s;}
+      .modal.show{opacity:1; pointer-events:auto;}
+      .modal-card{background:#fff;border-radius:20px;width:90%;max-width:420px;padding:30px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2); transform:scale(0.9); transition:.2s;}
+      .modal.show .modal-card{transform:scale(1);}
+      .origin-box {background:#f0f9ff; padding:12px; border-radius:8px; margin-top:10px; font-size:14px; color:#0369a1; text-align: left;}
+      .origin-title {font-weight:800; margin-bottom:4px; display:block;}
+
+      @media (max-width:600px){
+        .word-display{font-size:36px;}
+      }
+    </style>
+</head>
+<body>
+
+    <!-- 상단 바 -->
+    <header class="topbar">
+        <!-- 텍스트 대신 로고 이미지 태그 사용 -->
+        <div class="brand">
+            <img src="logo.png" alt="미라정 보카특강" onerror="this.style.display='none'; this.parentNode.innerText='미라정 보카특강'">
+        </div>
+        <div class="toolbar">
+            <span id="day-badge" class="chip" style="display:none; background:#e0e7ff; color:var(--primary);">DAY 41</span>
+            <span id="stage-badge" class="chip" style="display:none">Stage 1</span>
+            <button id="home-btn" class="btn btn-ghost small" style="display:none">나가기</button>
+        </div>
+    </header>
+
+    <!-- 1. 메인 화면 -->
+    <section id="view-home" class="view active">
+        <div class="intro-box">
+            <h2 style="font-size:28px; font-weight:900; margin-bottom:10px;">미라정 영어학원</h2>
+            <p style="color:var(--muted);">총 4단계의 코스가 순차적으로 진행됩니다.</p>
+            
+            <ul class="step-list">
+                <li>📌 <strong>STEP 1.</strong> 영단어 → 뜻 찾기</li>
+                <li>📌 <strong>STEP 2.</strong> 뜻 → 영단어 찾기</li>
+                <li>📌 <strong>STEP 3.</strong> 동의어 (Synonym)</li>
+                <li>📌 <strong>STEP 4.</strong> 반의어 (Antonym)</li>
+            </ul>
+
+            <div class="input-group">
+                 <select id="day-select" class="input-field">
+                     <option value="DAY 41">DAY 41 (Root: sta)</option>
+                     <option value="DAY 42">DAY 42 (Roots: sid, clos, us...)</option>
+                     <option value="DAY 43">DAY 43 (Roots: ment, memor...)</option>
+                     <option value="DAY 44">DAY 44 (Roots: cogn, sci...)</option>
+                     <option value="DAY 45">DAY 45 (Roots: path, pen...)</option>
+                     <option value="DAY 46">DAY 46 (Roots: log, lingu...)</option>
+                     <option value="DAY 47">DAY 47 (Roots: cit, voc...)</option>
+                     <option value="DAY 48">DAY 48 (Roots: scrib, graph...)</option>
+                     <option value="DAY 49">DAY 49 (Roots: spec, vis...)</option>
+                     <option value="DAY 50">DAY 50 (Roots: popul, civil...)</option>
+                 </select>
+                 <input id="user-id" type="text" class="input-field" placeholder="이름/ID 입력">
+            </div>
+            
+            <button class="btn btn-primary xlarge" onclick="app.startSequence()">학습 시작하기</button>
+        </div>
+    </section>
+
+    <!-- 2. 퀴즈 화면 -->
+    <section id="view-quiz" class="view">
+        <div class="quiz-container">
+            <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+            <div class="status" style="display:flex; justify-content:space-between; color:var(--muted); font-size:14px; margin-bottom:20px;">
+                <span id="remain-count">남은 문제: 0</span>
+                <span id="wrong-count" style="color:var(--bad)">오답: 0</span>
+            </div>
+
+            <div id="word-display" class="word-display">
+                <!-- 단어 표시 영역 -->
+            </div>
+
+            <div id="choices" class="choices">
+                <!-- 보기 버튼들이 여기 생성됨 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 결과 화면 -->
+    <section id="view-result" class="view">
+        <div class="result-view">
+            <div class="score-circle">완료!</div>
+            <h2>모든 과정 종료</h2>
+            <p style="color:var(--muted); margin-bottom:40px;">선택하신 DAY의 학습을 모두 완주하셨습니다.<br>수고하셨습니다!</p>
+            <button class="btn btn-primary large" onclick="location.reload()">처음으로 돌아가기</button>
+        </div>
+    </section>
+
+    <!-- 오답 알림 모달 -->
+    <div id="wrong-modal" class="modal">
+        <div class="modal-card">
+            <h2 style="color:var(--bad); margin-top:0;">오답입니다!</h2>
+            <div id="modal-content" style="margin:20px 0; line-height:1.6; font-size:16px;">
+                <!-- 정답 내용 표시 -->
+            </div>
+            <button id="modal-next-btn" class="btn btn-primary xlarge">다음 문제</button>
+        </div>
+    </div>
+
+    <!-- 단계 완료 알림 모달 (중간 단계용) -->
+    <div id="stage-clear-modal" class="modal">
+        <div class="modal-card">
+            <h2 style="color:var(--primary); margin-top:0;">단계 완료!</h2>
+            <p id="stage-clear-msg" style="margin:20px 0; color:#555;">다음 단계로 넘어갑니다.</p>
+            <button id="next-stage-btn" class="btn btn-primary xlarge">계속하기</button>
+        </div>
+    </div>
+
+    <script>
+    // ==========================================
+    // [데이터 영역] DAY별 데이터 구성
+    // ==========================================
+    const VOCA_DB = {
+        "DAY 41": [
+            { en: 'stand', ko: '서다, 견디다, 태도', syn: 'rise, endure, tolerate', ant: 'sit, lie, yield', origin: "sta(nd)(서다) → 서다, 세우다, 서서 견디다" },
+            { en: 'standard', ko: '기준, 표준, 표준의', syn: 'criterion, norm, benchmark', ant: 'irregularity, anomaly', origin: "sta(nd)(서다) + ard(명·접) → 움직이지 않고 서 있는 기준" },
+            { en: 'state', ko: '상태, 국가, 주, 진술하다', syn: 'condition, nation, declare', ant: 'deny (statement)', origin: "sta(te)(서다) → 멈춰 서 있는 상태, 영토 위에 세워진 국가" },
+            { en: 'statistics', ko: '통계(학), 통계 자료', syn: 'data, figures, stats', ant: 'guesswork', origin: "stat(e)(국가) + ist(사람) + ics(명·접) → 국가를 운영하는 사람들에게 필요한 통계" },
+            { en: 'stage', ko: '무대, 단계', syn: 'platform, phase, step', ant: 'audience (contextual)', origin: "sta(ge)(서다) → 올라가서 서는 무대" },
+            { en: 'status', ko: '지위, 신분, 상황', syn: 'rank, position, standing', ant: 'anonymity', origin: "sta(tus)(서다) → 차지하고 서 있는 지위, 신분" },
+            { en: 'stance', ko: '입장, 태도, 자세', syn: 'position, attitude, viewpoint', ant: 'indifference', origin: "sta(서다) + (a)nce(명·접) → 어떤 쪽에 서서 취하는 입장, 태도" },
+            { en: 'instance', ko: '예, 사례, 경우', syn: 'example, case, occurrence', ant: 'generalization', origin: "in(안에) + sta(서다) + (a)nce(명·접) → 안에 있는 여럿 중 대표로 일어서 있는 하나" },
+            { en: 'substance', ko: '물질, 실체, 본질', syn: 'matter, material, essence', ant: 'nothingness, fantasy', origin: "sub(아래에) + sta(서다) + (a)nce(명·접) → 하늘 아래 실체를 가지고 서 있는 것, 즉 물질" },
+            { en: 'constant', ko: '지속적인, 끊임없는, 불변의', syn: 'continuous, steady, perpetual', ant: 'variable, changing, intermittent', origin: "con(모두) + sta(서다) + (a)nt(형·접) → 모든 시간에 계속 그대로 서 있는" },
+            { en: 'instant', ko: '즉각적인, 순간', syn: 'immediate, prompt, moment', ant: 'delayed, eternal', origin: "in(안에) + sta(서다) + (a)nt(형·접) → 안에 서 있어서 바로 나올 수 있는" },
+            { en: 'stable', ko: '안정적인, 차분한, 마구간', syn: 'steady, secure, firm', ant: 'unstable, shaky, volatile', origin: "sta(서다) + ble(할 수 있는) → 서 있을 수 있게 상태가 안정적인" },
+            { en: 'establish', ko: '설립하다, 확립하다, 제정하다', syn: 'found, set up, institute', ant: 'demolish, abolish', origin: "(e)stabl(e)(안정적인) + ish(동·접) → 체계, 기관 등이 안정적으로 존재할 수 있게 설립하다" },
+            { en: 'stall', ko: '가판대, 외양간, 멎다', syn: 'stand, booth, halt', ant: 'proceed, advance', origin: "sta(ll)(세우다) → 가축이나 제품 등을 세워둔 외양간, 어떤 것이 멈춰 세워지다" },
+            { en: 'install', ko: '설치하다, 임명하다', syn: 'set up, put in, induct', ant: 'remove, uninstall', origin: "in(안에) + sta(ll)(세우다) → 건물 등의 안에 어떤 것을 세우다, 즉 설치하다" },
+            { en: 'static', ko: '고정적인, 정지 상태의, 정적인', syn: 'stationary, fixed, motionless', ant: 'dynamic, moving', origin: "sta(t)(서다) + ic(형·접) → 움직이지 않고 가만히 서 있는" },
+            { en: 'statue', ko: '조각상, 동상', syn: 'sculpture, figure', ant: 'painting', origin: "sta(tue)(세우다) → 만들어서 세워둔 조각상" },
+            { en: 'estate', ko: '사유지, 부동산, 재산', syn: 'property, land, assets', ant: 'debt', origin: "(e)sta(te)(서다) → 서서 소유를 주장하는 주인이 있는 사유지, 부동산" },
+            { en: 'stationery', ko: '문구류, 편지지', syn: 'writing supplies, paper', ant: 'hardware (contextual)', origin: "station(서다) + er(사람) + y(명·접) → 돌아다니지 않고 학교 앞에 서 있는 상인이 파는 문방구" },
+            { en: 'stationary', ko: '움직이지 않는, 정지된', syn: 'motionless, fixed, immobile', ant: 'moving, mobile', origin: "station(서다) + ary(형·접) → 한 장소에 서서 움직이지 않는" },
+            { en: 'system', ko: '체계, 제도, 시스템', syn: 'structure, organization, method', ant: 'chaos, disorder', origin: "sy(m)(함께) + st(em)(서다) → 여럿이 함께 서서 이루는 체계, 제도" },
+            { en: 'cost', ko: '비용, 값, (비용이) 들다', syn: 'price, expense, charge', ant: 'profit, gain', origin: "co(m)(함께) + st(세우다) → 파는 제품 곁에 함께 세워둔 값 또는 비용" },
+            { en: 'rest', ko: '휴식, 나머지, 쉬다', syn: 'break, remainder, relaxation', ant: 'work, labor', origin: "re(뒤로) + st(서다) → 뒤로 물러서서 쉬다" },
+            { en: 'steady', ko: '꾸준한, 안정된, 변함없는', syn: 'constant, stable, consistent', ant: 'unsteady, shaky', origin: "st(ead)(서다) + y(형·접) → 한 자리에 변함없이 서서 꾸준한" },
+            { en: 'destiny', ko: '운명, 숙명', syn: 'fate, fortune, doom', ant: 'choice, free will', origin: "de(아래로) + st(in)(서다) + y(명·접) → 아래 서 있어 인생을 지배받게 되는 힘, 즉 운명" },
+            { en: 'constitute', ko: '구성하다, 설립하다, 제정하다', syn: 'compose, form, make up', ant: 'disband, destroy', origin: "con(함께) + stit(ute)(서다) → 여럿이 함께 서서 기관, 단체 등을 구성하다" },
+            { en: 'institute', ko: '협회, 연구소, 설립하다, 도입하다', syn: 'establish, organization, academy', ant: 'abolish, terminate', origin: "in(안에) + stit(ute)(세우다) → 집단 안에 규정 등을 세우다" },
+            { en: 'substitute', ko: '대신하다, 대체하다, 대리인', syn: 'replace, exchange, alternate', ant: 'keep, preserve', origin: "sub(아래에) + stit(ute)(서다) → 아래에 있던 사람이 위의 사람 대신 서다" },
+            { en: 'exist', ko: '존재하다, 실재하다', syn: 'be, live, occur', ant: 'cease, vanish', origin: "ex(밖으로) + (s)ist(서다) → 상상 밖으로 나와 현실에 실제로 서 있다" },
+            { en: 'consist', ko: '이루어져 있다, 구성되다', syn: 'comprise, be composed of', ant: 'exclude', origin: "con(함께) + sist(서다) → 여럿이 함께 서서 어떤 것 하나가 이루어져 있다" },
+            { en: 'insist', ko: '주장하다, 고집하다', syn: 'demand, persist, assert', ant: 'give up, yield', origin: "in(안에) + sist(서다) → 믿는 것 안에 확고히 서서 그것을 주장하다" },
+            { en: 'resist', ko: '저항하다, 반대하다, 견디다', syn: 'oppose, withstand, defy', ant: 'submit, surrender', origin: "re(다시) + sist(서다) → 압박에 굴하지 않고 다시 일어서 저항하다" },
+            { en: 'assist', ko: '돕다, 거들다, 원조하다', syn: 'help, aid, support', ant: 'hinder, impede', origin: "as(쪽으로) + sist(서다) → 돕고자 하는 쪽으로 서서 그쪽을 돕다" }
+        ],
+        "DAY 42": [
+            { en: 'president', ko: '대통령, 회장, 의장', syn: 'head, leader, chief, chairman', ant: 'member, follower, subordinate', origin: "pre(앞에) + sid(앉다) + ent(사람) → 국가나 기업을 대표해 앞에 앉는 사람" },
+            { en: 'reside', ko: '살다, 거주하다', syn: 'live, dwell, inhabit, occupy', ant: 'leave, move, vacate', origin: "re(뒤에) + sid(e)(앉다) → 떠나지 않고 뒤에 남아 눌러앉다" },
+            { en: 'resident', ko: '거주자, 주민', syn: 'inhabitant, dweller, citizen, tenant', ant: 'visitor, tourist, transient, alien', origin: "reside(거주하다) + ent(사람)" },
+            { en: 'subside', ko: '가라앉다, 진정되다, 주저앉다', syn: 'abate, decrease, diminish, recede', ant: 'increase, intensify, rise, worsen', origin: "sub(아래로) + sid(e)(앉다) → 높이 솟았던 것, 소란 등이 아래로 가라앉다" },
+            { en: 'settle', ko: '정착하다, (논쟁 등을) 끝내다, 합의를 보다', syn: 'resolve, establish, locate, fix', ant: 'unsettle, move, wander, prolong', origin: "set(tle)(앉다) → 한곳에 눌러앉아 거기 정착하다" },
+            { en: 'session', ko: '(특정 활동을 위한) 기간, 시간, 수업', syn: 'period, term, meeting, gathering', ant: 'break, recess', origin: "sess(앉다) + ion(명·접) → 특정한 일을 위해 앉아 있는 기간이나 시간" },
+            { en: 'assess', ko: '평가하다, 가늠하다, 재다', syn: 'evaluate, estimate, judge, gauge', ant: 'ignore, neglect', origin: "as(-쪽으로) + sess(앉다) → 어떤 것 쪽으로 앉아 자세히 보고 그것을 평가하다" },
+            { en: 'obsess', ko: '(마음을) 사로잡다, ~에 집착하게 하다', syn: 'preoccupy, haunt, consume, fixate', ant: 'liberate, free, ignore', origin: "ob(향하여) + sess(앉다) → 자신을 향하여 앉도록 마음을 사로잡다" },
+            { en: 'close', ko: '닫다, 폐쇄하다; 가까운, 친밀한', syn: 'shut, lock; near, intimate', ant: 'open, unlock; far, distant', origin: "clos(e)(닫다) → 열려 있던 것을 닫다, 폐쇄하다" },
+            { en: 'disclose', ko: '드러내다, 밝히다, 폭로하다', syn: 'reveal, expose, unveil, divulge', ant: 'conceal, hide, cover, suppress', origin: "dis(반대의) + clos(e)(닫다) → 닫혀서 안 보이던 것을 반대 상태로 만들다" },
+            { en: 'enclose', ko: '둘러싸다, 에워싸다, 동봉하다', syn: 'surround, circle, insert, include', ant: 'release, free, exclude, extract', origin: "en(안에) + clos(e)(닫다) → 어떤 것을 안에 넣고 주변을 모두 닫아 그것을 둘러싸다" },
+            { en: 'closet', ko: '벽장', syn: 'cupboard, wardrobe, cabinet, locker', ant: 'open space', origin: "clos(닫다) + et(명·접) → 옷 등의 물건을 넣고 닫아 두는 벽장" },
+            { en: 'include', ko: '포함하다, 포함시키다', syn: 'contain, comprise, involve, incorporate', ant: 'exclude, omit, leave out, ban', origin: "in(안에) + clud(e)(닫다) → 어떤 것을 안에 집어넣고 닫아 그것을 포함하다" },
+            { en: 'conclude', ko: '결론을 내다, 끝내다', syn: 'finish, end, terminate, deduce', ant: 'start, begin, commence, initiate', origin: "con(모두) + clud(e)(닫다) → 논의하던 것을 모두 닫다, 즉 논의를 끝내고 결론을 내다" },
+            { en: 'exclude', ko: '제외하다, 배제하다, 차단하다', syn: 'bar, ban, eliminate, rule out', ant: 'include, admit, accept, welcome', origin: "ex(밖에) + clud(e)(닫다) → 밖에 두고 문을 닫아 못 들어오게 제외하다" },
+            { en: 'use', ko: '사용하다, 쓰다; 사용, 이용', syn: 'utilize, employ, apply, exercise', ant: 'ignore, neglect, waste', origin: "us(e)(사용하다) → 어떤 것을 사용하다" },
+            { en: 'usual', ko: '평상시의, 보통의', syn: 'normal, common, regular, ordinary', ant: 'unusual, rare, strange, extraordinary', origin: "us(사용하다) + ual(형·접) → 늘 사용하는, 즉 평상시의" },
+            { en: 'abuse', ko: '남용하다, 오용하다, 학대하다; 남용, 학대', syn: 'misuse, mistreat, exploit, harm', ant: 'cherish, protect, respect, care for', origin: "ab(떨어져) + us(e)(사용하다) → 정해진 것과 동떨어지게 함부로 사용하다" },
+            { en: 'misuse', ko: '오용하다, 남용하다, 악용하다; 오용, 남용', syn: 'abuse, misapply, mishandle', ant: 'use correctly, respect', origin: "mis(잘못된) + use(사용하다) → 잘못된 방식으로 사용하다" },
+            { en: 'utility', ko: '유용함, 공익 설비/사업; 실용적인', syn: 'usefulness, practicality, service', ant: 'inutility, uselessness', origin: "ut(사용하다) + il + ity(명·접) → 사용할 수 있는 설비, 사용할 수 있게 실용적인" },
+            { en: 'utensil', ko: '도구, 기구', syn: 'tool, instrument, implement, device', ant: 'N/A', origin: "ut(en)(사용하다) + sil(알맞은) → 목적에 알맞게 사용할 수 있는 도구" },
+            { en: 'dilute', ko: '희석하다, 묽게 하다; 희석한, 묽은', syn: 'weaken, thin, water down, adulterate', ant: 'concentrate, strengthen, thicken', origin: "di(떨어져) + lute(씻다) → 물로 씻어 뭉쳐 있던 것을 떨어뜨려 희석하다" },
+            { en: 'laundry', ko: '세탁(물), 세탁소', syn: 'washing, clothes, cleaners', ant: 'N/A', origin: "laundr(씻다) + y(명·접) → 더러워진 것을 씻음" },
+            { en: 'company', ko: '회사, 일행', syn: 'firm, business, corporation; group, party', ant: 'individual', origin: "com(함께) + pan(y)(빵) → 일을 같이 하며 함께 빵을 먹는 단체" },
+            { en: 'accompany', ko: '동반하다, 동행하다', syn: 'escort, attend, follow, join', ant: 'abandon, leave, desert', origin: "ac(-에) + company(일행) → 어딘가에 일행으로 같이 동반하다" },
+            { en: 'companion', ko: '친구, 동반자', syn: 'partner, mate, comrade, friend', ant: 'enemy, foe, stranger, opponent', origin: "com(함께) + pan(빵) + ion(명·접) → 빵을 함께 나누는 사이" },
+            { en: 'paste', ko: '반죽, 풀; 풀칠하다', syn: 'dough, glue, adhesive; stick', ant: 'detach, unstick', origin: "past(e)(빵) → 빵을 만드는 반죽" },
+            { en: 'cell', ko: '독방, 세포, (작은) 칸', syn: 'unit, room, cage, compartment', ant: 'whole, aggregate', origin: "cell(작은 방) → 혼자 쓰는 작은 독방, 작은 방처럼 칸칸이 나뉜 모양의 세포" },
+            { en: 'cellular', ko: '세포의, 휴대 전화의', syn: 'mobile, wireless', ant: 'landline, wired', origin: "cell(ul)(세포) + ar(형·접) → 세포의, 세포처럼 각각 분리되어 있는 휴대 전화의" }
+        ],
+        "DAY 43": [
+            { en: 'mental', ko: '정신의, 정신적인', syn: 'psychological, intellectual, cerebral', ant: 'physical, bodily, corporal', origin: "ment(정신) + al(접) → 정신의" },
+            { en: 'mention', ko: '언급, 언급하다', syn: 'refer to, cite, state, remark', ant: 'ignore, conceal, suppress', origin: "ment(생각하다) + ion(명·접) → 어떤 것에 대해 생각나게 하는 언급" },
+            { en: 'comment', ko: '논평, 언급; 논평하다, 견해를 밝히다', syn: 'remark, note, opinion, observe', ant: 'silence, ignore', origin: "com(함께) + ment(생각하다) → 어떤 대상을 생각하면 함께 말하게 되는 논평" },
+            { en: 'remind', ko: '상기시키다, 생각나게 하다', syn: 'recall, prompt, jog memory', ant: 'forget, suppress', origin: "re(다시) + mind(생각하다) → 예전의 것을 다시 생각나게 상기시키다" },
+            { en: 'monument', ko: '기념비, 기념물', syn: 'memorial, statue, landmark, testament', ant: 'N/A', origin: "mon(u)(생각하다) + ment(명·접) → 과거를 생각할 수 있도록 만든 기념비" },
+            { en: 'monitor', ko: '감시 요원, 화면; 감시하다, 상태를 확인하다', syn: 'observe, watch, check, supervise; screen', ant: 'ignore, neglect', origin: "mon(it)(경고하다) + or(명·접-사람) → 상황을 살펴보고 경고하는 감시 요원" },
+            { en: 'summon', ko: '소환하다, 호출하다', syn: 'call, convene, cite, subpoena', ant: 'dismiss, send away, discharge', origin: "sum(아래에) + mon(경고하다) → 누군가의 아래에 와야만 한다고 경고하여 소환하다" },
+            { en: 'memory', ko: '기억(력), 추억', syn: 'recollection, remembrance, retention', ant: 'amnesia, forgetfulness, oblivion', origin: "memor(기억하는) + y(명·접) → 과거의 일에 대해 새겨둔 기억" },
+            { en: 'commemorate', ko: '기념하다, 기념식을 거행하다', syn: 'celebrate, honor, memorialize, observe', ant: 'ignore, forget, dishonor', origin: "com(함께) + memor(기억하는) + ate(동·접) → 여럿이 함께 어떤 일을 기억하여 기념하다" },
+            { en: 'reputation', ko: '명성, 평판', syn: 'fame, renown, prestige, standing', ant: 'infamy, notoriety, disgrace', origin: "re(다시) + put(생각하다) + ation(명·접) → 다시 생각이 날 만큼 대단한 명성" },
+            { en: 'dispute', ko: '분쟁, 논란; 분쟁을 벌이다, 다투다', syn: 'argument, conflict, debate, quarrel', ant: 'agreement, accord, harmony, peace', origin: "dis(반대의) + put(e)(생각하다) → 서로 반대의 생각을 해서 생기는 분쟁" },
+            { en: 'compute', ko: '계산하다, 산출하다', syn: 'calculate, figure, estimate, reckon', ant: 'guess, estimate', origin: "com(함께) + put(e)(생각하다) → 많은 것을 함께 생각하여 값을 계산하다" },
+            { en: 'rate', ko: '비(율), 속도, 요금; 평가하다, 등급을 매기다', syn: 'ratio, speed, fee; evaluate, rank', ant: 'N/A', origin: "rat(e)(계산하다) → 추론이나 계산을 통해 평가하다" },
+            { en: 'ratio', ko: '(~에 대한) 비, 비율', syn: 'proportion, percentage, fraction, rate', ant: 'whole', origin: "rat(io)(계산하다) → 어떤 것의 값을 다른 값에 비교해 계산한 비" },
+            { en: 'rational', ko: '합리적인, 이성적인, 추론의', syn: 'logical, reasonable, sensible, sane', ant: 'irrational, unreasonable, illogical, insane', origin: "ration(추론하다) + al(형·접) → 이성에 따라 추론이 가능한 상태인" },
+            { en: 'irrational', ko: '비이성적인, 불합리한', syn: 'illogical, unreasonable, absurd, senseless', ant: 'rational, logical, reasonable, sound', origin: "ir(아닌) + rational(이성적인) → 이성적이지 않은" },
+            { en: 'reason', ko: '이유, 근거, 이성; 추론하다, 판단하다', syn: 'cause, basis, intellect; deduce, infer', ant: 'result, instinct; guess', origin: "reas(on)(추론하다) → 이유나 근거를 가지고 추론하다" },
+            { en: 'cause', ko: '원인, 이유; 야기하다, 초래하다', syn: 'origin, root, reason; bring about, lead to', ant: 'effect, result, outcome; prevent', origin: "cause(이유) → 어떤 일이 일어나도록 야기하는 원인" },
+            { en: 'accuse', ko: '고발하다, 기소하다, 비난하다', syn: 'charge, indict, blame, prosecute', ant: 'defend, exonerate, absolve, praise', origin: "ac(~쪽으로) + cuse(이유) → 사건의 이유를 상대 쪽으로 돌리다" },
+            { en: 'excuse', ko: '변명하다, 용서하다, 면제하다; 변명, 사과', syn: 'justify, pardon, exempt; apology, pretext', ant: 'blame, accuse, condemn; accusation', origin: "ex(밖으로) + cuse(이유) → 사건의 이유를 밖으로 돌리다" },
+            { en: 'credit', ko: '신뢰, 신용 (거래); 믿다, 신용하다', syn: 'trust, confidence, belief; believe, rely on', ant: 'disbelief, distrust, doubt', origin: "cred(it)(믿다) → 믿음, 믿음을 근거로 하는 신용 거래" },
+            { en: 'credible', ko: '믿을 수 있는, 신용할 만한', syn: 'believable, trustworthy, reliable, plausible', ant: 'incredible, unbelievable, unreliable, doubtful', origin: "cred(믿다) + ible(할 수 있는) → 믿을 수 있는" },
+            { en: 'incredible', ko: '놀라운, 대단한, 믿어지지 않는', syn: 'unbelievable, amazing, extraordinary, fantastic', ant: 'credible, believable, ordinary, plain', origin: "in(아닌) + cred(믿다) + ible(할 수 있는) → 믿을 수 없을 정도로 놀라운" },
+            { en: 'confident', ko: '자신 있는, 확신하는', syn: 'sure, certain, positive, self-assured', ant: 'doubtful, uncertain, insecure, timid', origin: "con(모두) + fid(믿다) + ent(형·접) → 자신의 모든 것을 믿어 자신 있는" },
+            { en: 'federal', ko: '연방제의, 연방 정부의, 연합의', syn: 'national, central, confederate, united', ant: 'local, state, regional', origin: "fed(er)(믿다) + al(형·접) → 믿음을 바탕으로 연합한 연방제의" },
+            { en: 'faith', ko: '믿음, 신뢰, 신앙', syn: 'belief, trust, confidence, devotion', ant: 'disbelief, doubt, skepticism, distrust', origin: "fai(믿다) + th(명·접) → 어떤 대상에 대한 믿음" },
+            { en: 'defy', ko: '저항하다, 반항하다', syn: 'resist, oppose, challenge, disobey', ant: 'obey, submit, comply, surrender', origin: "de(떨어져) + fy(믿다) → 누군가를 믿지 못해 그에게서 떨어져 저항하다" }
+        ],
+        "DAY 44": [
+            { en: 'recognize', ko: '알아보다, 인정하다, 인식하다', syn: 'identify, acknowledge, know, admit', ant: 'ignore, overlook, forget, deny', origin: "re(다시) + cogn(알다) + ize(동·접) → 다시 보고 알게 되다, 즉 알아보다" },
+            { en: 'cognitive', ko: '인식의, 인지의', syn: 'mental, intellectual, cerebral', ant: 'physical, emotional', origin: "cogn(it)(알다) + ive(형·접) → 아는 것과 관련한" },
+            { en: 'ignore', ko: '무시하다, 못 본 척하다', syn: 'disregard, neglect, overlook, slight', ant: 'notice, heed, pay attention, acknowledge', origin: "i(n)(아닌) + gno(re)(알다) → 아는체하지 않고 무시하다" },
+            { en: 'diagnose', ko: '(질병, 문제의 원인 등을) 진단하다', syn: 'identify, determine, analyze, examine', ant: 'misdiagnose, guess', origin: "dia(가로질러) + gno(se)(알다) → 몸 전체를 가로질러 살펴 질병 등을 알아내다" },
+            { en: 'noble', ko: '고귀한, 귀족의; 귀족', syn: 'aristocratic, high-born, dignified; aristocrat', ant: 'humble, low-born, ignoble; commoner', origin: "no(알다) + ble(형·접) → 누구나 잘 알 정도로 신분이 높거나 고귀한" },
+            { en: 'acknowledge', ko: '인정하다, 사례하다', syn: 'admit, accept, confess, appreciate', ant: 'deny, reject, ignore, refuse', origin: "ac(인정하다) + know(ledge)(알다) → 어떤 사실에 대해 아는 것을 인정하다" },
+            { en: 'acquaint', ko: '알게 하다, 익히다, 숙지하다', syn: 'familiarize, inform, enlighten, notify', ant: 'conceal, hide', origin: "ac(~쪽으로) + quaint(알다) → 상대 쪽으로 어떤 것을 알려 그것을 알게 하다" },
+            { en: 'conscious', ko: '의식하는, 의식이 있는, 자각하는', syn: 'aware, awake, alert, cognizant', ant: 'unconscious, unaware, asleep', origin: "con(함께) + sci(알다) + ous(형·접) → 어떤 것이 함께 있다는 것을 알고 그것을 의식하는" },
+            { en: 'unconscious', ko: '의식이 없는, 의식하지 못하는', syn: 'senseless, unaware, oblivious', ant: 'conscious, aware, alert', origin: "un(아닌) + conscious(의식 있는) → 의식이 없는" },
+            { en: 'subconscious', ko: '잠재의식의', syn: 'subliminal, latent, innermost', ant: 'conscious', origin: "sub(아래에) + conscious(의식 있는) → 의식의 아래에 있는 잠재의식의" },
+            { en: 'science', ko: '과학, ~학', syn: 'discipline, field, knowledge', ant: 'art, humanities', origin: "sci(알다) + ence(명·접) → 진리, 법칙에 대해 알아내려는 학문" },
+            { en: 'conscience', ko: '양심, 선악에 대한 판단력', syn: 'morals, principles, ethics, scruples', ant: 'immorality', origin: "con(모두) + sci(알다) + ence(명·접) → 모두가 가지고 있는 옳고 그름을 아는 마음" },
+            { en: 'notice', ko: '알아채다, 통지하다, 주목하다; 알아챔, 통지', syn: 'detect, observe, see; notification, announcement', ant: 'miss, ignore, overlook', origin: "not(ice)(알다) → 어떤 것을 알아채다" },
+            { en: 'notion', ko: '개념, 관념', syn: 'idea, concept, belief, view', ant: 'fact, reality', origin: "not(ion)(알다) → 사물이나 현상에 대해 알려진 일반적인 지식" },
+            { en: 'notify', ko: '알리다, 통지하다', syn: 'inform, advise, alert, tell', ant: 'conceal, withhold', origin: "not(ify)(알다) → 어떤 것에 대해 알게 하다" },
+            { en: 'notation', ko: '표기법, 기호', syn: 'symbol, sign, code, representation', ant: 'N/A', origin: "not(알다) + ation(명·접) → 어떤 것을 알리기 위해 통일된 표기법" },
+            { en: 'notable', ko: '유명한, 눈에 띄는; 유명한 인물', syn: 'remarkable, outstanding, famous, prominent', ant: 'insignificant, ordinary, unknown, obscure', origin: "not(알다) + able(할 수 있는) → 누구나 알 수 있는, 즉 유명한" },
+            { en: 'sense', ko: '느끼다, 감지하다; 느낌, 감각', syn: 'feel, detect, perceive; sensation, feeling', ant: 'miss, overlook; numbness', origin: "sens(e)(느끼다) → 느끼다, 느낌, 감각" },
+            { en: 'sensible', ko: '분별력 있는, 느낄 수 있는', syn: 'reasonable, rational, practical, wise', ant: 'foolish, senseless, unreasonable, stupid', origin: "sens(느끼다) + ible(할 수 있는) → 옳고 그름을 느낄 수 있는" },
+            { en: 'sensation', ko: '큰 감흥을 주는 사건, 느낌/감각', syn: 'excitement, thrill, stir; feeling, perception', ant: 'boredom, apathy', origin: "sens(느끼다) + ation(명·접) → 큰 느낌을 주는 사건" },
+            { en: 'nonsense', ko: '터무니없는 생각, 허튼 소리', syn: 'absurdity, rubbish, foolishness, silliness', ant: 'sense, wisdom, fact, truth', origin: "non(없는) + sens(e)(느끼다) → 함께 느낄 수 없는, 즉 동의할 수 없는 허튼 생각" },
+            { en: 'consensus', ko: '의견의 일치, 합의, 여론', syn: 'agreement, accord, harmony, unity', ant: 'disagreement, discord, conflict, dissension', origin: "con(함께) + sens(us)(느끼다) → 여럿이 함께 동일하게 느끼는 것" },
+            { en: 'sentence', ko: '문장, (판결의) 선고; 선고하다', syn: 'statement, phrase; judgment, verdict; condemn', ant: 'N/A; acquit, absolve', origin: "sent(느끼다) + ence(명·접) → 느낌을 말이나 글로 표현한 문장" },
+            { en: 'sentiment', ko: '감정, 감상, 정서', syn: 'feeling, emotion, mood, attitude', ant: 'indifference, apathy', origin: "sent(i)(느끼다) + ment(명·접) → 느끼는 것, 즉 감정 또는 감상" },
+            { en: 'resent', ko: '분개하다, 억울하게 여기다', syn: 'grudge, dislike, be angry, take offense', ant: 'welcome, like, appreciate', origin: "re(다시) + sent(느끼다) → 나쁜 자극에 대한 반응으로 다시 분노를 느끼다" },
+            { en: 'dissent', ko: '반대하다; 반대, 반대 의견', syn: 'disagree, object, oppose; disagreement', ant: 'agree, consent, concur; agreement', origin: "dis(반대의) + sent(느끼다) → 반대로 느끼다, 즉 반대하다" },
+            { en: 'consent', ko: '동의하다, 찬성하다; 동의, 찬성', syn: 'agree, approve, permit; permission, approval', ant: 'refuse, dissent, forbid; refusal, prohibition', origin: "con(함께) + sent(느끼다) → 함께 똑같이 느끼다, 즉 동의하다" },
+            { en: 'scent', ko: '향(기), 냄새; 향기가 나다', syn: 'fragrance, aroma, smell, perfume', ant: 'stench, stink, odor', origin: "scent(느끼다) → 코로 느끼는 향기, 냄새" }
+        ],
+        "DAY 45": [
+            { en: 'pathetic', ko: '불쌍한, 무기력한', syn: 'pitiful, miserable, sad, helpless', ant: 'admirable, cheerful, strong', origin: "path(et)(고통을 겪다) + ic(형·접) → 고통을 겪고 있어 불쌍한" },
+            { en: 'sympathy', ko: '동정, 연민', syn: 'compassion, pity, empathy, condolences', ant: 'indifference, cruelty, apathy', origin: "sym(함께) + path(고통을 겪다) + y(명·접) → 상대의 고통을 함께 겪으며 불쌍히 여기는 동정" },
+            { en: 'empathy', ko: '공감, 감정이입', syn: 'understanding, feeling, affinity', ant: 'apathy, indifference, detachment', origin: "em(안에) + path(느끼다) + y(명·접) → 마음 안에서 상대의 감정을 똑같이 느끼는 공감" },
+            { en: 'patient', ko: '환자; 인내심 있는, 참을성 있는', syn: 'sick person; enduring, tolerant, calm', ant: 'doctor; impatient, restless, hasty', origin: "pat(i)(고통을 겪다) + ent(명·접/사람) → 고통을 겪는 환자" },
+            { en: 'passion', ko: '열정, 격정', syn: 'enthusiasm, fervor, zeal, ardor', ant: 'apathy, indifference, coolness', origin: "pass(ion)(느끼다) → 강하게 느끼는 애정, 즉 열정" },
+            { en: 'compassion', ko: '연민, 동정심', syn: 'sympathy, pity, kindness, mercy', ant: 'cruelty, indifference, harshness', origin: "com(함께) + passion(느끼다) → 다른 사람의 고통을 함께 느끼며 가엾게 여기는 연민" },
+            { en: 'passive', ko: '수동적인, 소극적인', syn: 'inactive, submissive, compliant', ant: 'active, aggressive, assertive', origin: "pass(느끼다) + ive(형·접) → 행동하지 않고 자극을 느끼기만 하는" },
+            { en: 'penalty', ko: '처벌, 벌칙', syn: 'punishment, fine, sanction, sentence', ant: 'reward, prize', origin: "pen(벌) + al + ty(명·접) → 잘못에 대한 처벌 또는 벌칙" },
+            { en: 'punish', ko: '벌하다, 처벌하다', syn: 'discipline, penalize, castigate, correct', ant: 'reward, pardon, forgive, excuse', origin: "punish(벌) → 벌을 주다" },
+            { en: 'pain', ko: '고통, 통증; 고통스럽게 하다', syn: 'suffering, ache, agony, hurt', ant: 'pleasure, relief, comfort, joy', origin: "pain(고통) → 고통, 고통스럽게 하다" },
+            { en: 'terror', ko: '두려움, 공포, 두려운 대상', syn: 'fear, horror, panic, dread', ant: 'courage, bravery, calm, security', origin: "terror(두려워하게 하다) → 두려움, 두려운 대상" },
+            { en: 'terrify', ko: '두려워하게 하다, 무섭게 하다', syn: 'frighten, scare, horrify, petrify', ant: 'comfort, reassure, soothe, calm', origin: "terr(두려워하게 하다) + ify(동·접) → 두려워하게 만들다" },
+            { en: 'deterrent', ko: '제지시키는, 방해하는; 방해물', syn: 'discouraging, preventive; obstacle, hindrance', ant: 'encouraging; incentive, stimulant', origin: "de(떨어져) + terr(두려워하게 하다) + ent(형·접) → 두려워서 하던 일에서 떨어지게 하는" },
+            { en: 'tremble', ko: '떨다, 흔들리다; 떨림, 전율', syn: 'shake, shiver, quiver, vibrate', ant: 'steady, calm, stabilize', origin: "trem(ble)(떨다) → 떨다, 떨림" },
+            { en: 'tremendous', ko: '엄청난, 막대한', syn: 'huge, enormous, immense, massive', ant: 'tiny, small, insignificant, minute', origin: "trem(떨다) + endous → 떨게 만들 정도로 엄청난" },
+            { en: 'please', ko: '기쁘게 하다, 즐겁게 하다', syn: 'delight, satisfy, amuse, gratify', ant: 'displease, annoy, anger, upset', origin: "pleas(e)(기쁘게 하다) → 기쁘게 하다, 즐겁게 하다" },
+            { en: 'displease', ko: '불만스럽게 하다, 불쾌하게 만들다', syn: 'annoy, upset, offend, irritate', ant: 'please, delight, satisfy, gladden', origin: "dis(반대의) + pleas(e)(기쁘게 하다) → '기쁘게 하다'의 반대" },
+            { en: 'plead', ko: '간청하다, 탄원하다', syn: 'beg, implore, entreat, appeal', ant: 'demand, command, order', origin: "plea(d)(기쁘게 하다) → 기쁘게 해서 원하는 바를 얻고자 간청하다" },
+            { en: 'grateful', ko: '감사하는, 고마워하는', syn: 'thankful, appreciative, obliged', ant: 'ungrateful, unappreciative, thankless', origin: "grat(e)(감사하는) + ful(형·접) → 감사하는, 고마워하는" },
+            { en: 'gratitude', ko: '감사, 고마움', syn: 'thanks, appreciation, gratefulness', ant: 'ingratitude, ungratefulness', origin: "grat(i)(감사하는) + tude(명·접) → 감사함, 고마움" },
+            { en: 'gratify', ko: '기쁘게 하다, 만족시키다', syn: 'please, satisfy, delight, fulfill', ant: 'displease, disappoint, frustrate', origin: "grat(ify)(기쁨을 주는) → 기쁨을 주다" },
+            { en: 'congratulate', ko: '축하하다, 기뻐하다', syn: 'compliment, felicitate, praise, salute', ant: 'criticize, condemn', origin: "con(함께) + grat(ul)(기쁨을 주는) + ate(동·접) → 다른 이의 기쁨을 함께 축하하다" },
+            { en: 'grace', ko: '우아함, 품위, (신의) 은총', syn: 'elegance, dignity, charm; mercy', ant: 'awkwardness, clumsiness; disgrace', origin: "grac(e)(기쁨을 주는) → 보는 사람에게 기쁨을 주는 우아함" },
+            { en: 'agree', ko: '동의하다, 합의가 되다', syn: 'concur, consent, accept, settle', ant: 'disagree, differ, argue, dispute', origin: "a(-에) + gree(기쁨을 주는) → 기쁨을 줄 수 있도록 상대에게 동의하다" },
+            { en: 'prosper', ko: '번영하다, 번창하다', syn: 'thrive, flourish, succeed, boom', ant: 'fail, decline, wither, struggle', origin: "pro(앞으로) + sper(희망) → 희망차게 앞으로 발전해 나가다" },
+            { en: 'desperate', ko: '절망적인, 자포자기한, 필사적인', syn: 'hopeless, despairing; frantic, urgent', ant: 'hopeful, confident, optimistic; calm', origin: "de(떨어져) + sper(희망) + ate(형·접) → 희망에서 떨어진 상태인" },
+            { en: 'despair', ko: '절망; 절망하다, 체념하다', syn: 'hopelessness, misery; give up, lose hope', ant: 'hope, optimism; hope, believe', origin: "de(떨어져) + spair(희망) → 희망에서 떨어진 상태" }
+        ],
+        "DAY 46": [
+            { en: 'catalog', ko: '(물품, 도서 등의) 목록, 카탈로그; 목록을 작성하다', syn: 'list, inventory, register, record', ant: 'N/A', origin: "cata(아래로) + log(말) → 말을 아래로 적어 내려간 목록" },
+            { en: 'logic', ko: '논리, 타당성', syn: 'reasoning, sense, rationality, deduction', ant: 'irrationality, absurdity, nonsense', origin: "log(ic)(말) → 말을 이끌어 가는 원리, 즉 논리" },
+            { en: 'monologue', ko: '독백, (혼자서 하는) 긴 이야기', syn: 'soliloquy, speech, address', ant: 'dialogue, conversation', origin: "mono(혼자) + log(ue)(말) → 혼자 말하는 독백" },
+            { en: 'technology', ko: '(과학) 기술, 공학', syn: 'engineering, science, expertise', ant: 'N/A', origin: "techno(기술) + log(말) + y(명·접) → 기술에 대해 말하는 것" },
+            { en: 'psychology', ko: '심리학, 심리 (상태)', syn: 'mental science, study of mind; mindset', ant: 'N/A', origin: "psycho(정신) + log(말) + y(명·접) → 심리에 대해 말하는 것" },
+            { en: 'apology', ko: '사과, 사죄', syn: 'regret, excuse, plea, confession', ant: 'insult, offense, defiance', origin: "apo(떨어져) + log(말) + y(명·접) → 죄에서 떨어지기 위해서 말하는 사과" },
+            { en: 'ideology', ko: '사상, 이념, 관념', syn: 'belief, doctrine, philosophy, creed', ant: 'N/A', origin: "ide(o)(생각) + log(말) + y(명·접) → 어떤 것에 대한 생각을 구체적인 말이 되게 한 것" },
+            { en: 'analogy', ko: '비유, 유사(함), 유추', syn: 'comparison, similarity, parallel, likeness', ant: 'difference, contrast, dissimilarity', origin: "ana(따라 하는) + log(말) + y(명·접) → 어떤 것을 따라 하는 다른 것으로 빗대어 말하는 비유" },
+            { en: 'anthropology', ko: '인류학', syn: 'study of humans, science of man', ant: 'N/A', origin: "anthropo(인간) + log(말) + y(명·접) → 인간에 대해 말하는 것" },
+            { en: 'ecology', ko: '생태학, 생태(계)', syn: 'bionomics, environmental science', ant: 'N/A', origin: "eco(환경) + log(말) + y(명·접) → 환경에 대해 말하는 것" },
+            { en: 'linguist', ko: '언어학자, 언어에 능통한 사람', syn: 'philologist, polyglot, grammarian', ant: 'N/A', origin: "lingu(언어) + ist(명·접-사람) → 언어를 연구하는 언어학자" },
+            { en: 'monolingual', ko: '단일 언어를 사용하는', syn: 'unilingual', ant: 'multilingual, bilingual, polyglot', origin: "mono(하나) + lingu(언어) + al(형·접) → 하나의 언어만 쓰는" },
+            { en: 'language', ko: '언어, 말', syn: 'tongue, speech, dialect, lingo', ant: 'silence', origin: "langu(혀) + age(명·접) → 혀를 사용해 말하는 언어" },
+            { en: 'dictate', ko: '지시하다, 받아쓰게 하다; 명령, 지시', syn: 'command, order, impose; decree', ant: 'obey, follow, request', origin: "dict(말하다) + ate(동·접) → 말한 것을 하도록 지시하다" },
+            { en: 'contradict', ko: '반박하다, 모순되다, 부정하다', syn: 'dispute, oppose, deny, counter', ant: 'agree, confirm, verify, support', origin: "contra(반대의) + dict(말하다) → 상대의 의견에 반대로 말하다" },
+            { en: 'addict', ko: '중독되게 하다, (~에) 빠지게 하다; 중독자', syn: 'hook, depend; junkie, devotee', ant: 'wean; non-user', origin: "ad(-에) + dict(말하다) → 어떤 것에 대해서 계속 말해 그것에 중독되게 하다" },
+            { en: 'indicate', ko: '보여주다, 나타내다, 가리키다', syn: 'show, point out, signify, demonstrate', ant: 'hide, conceal, mask, obscure', origin: "in(안에) + dic(말하다) + ate(동·접) → 안에 가진 생각을 말로 하여 보여주다" },
+            { en: 'dedicate', ko: '바치다, 헌신하다, 전념하다', syn: 'devote, commit, pledge, consecrate', ant: 'withhold, keep, refuse', origin: "de(떨어져) + dic(말하다) + ate(동·접) → 다른 유혹에서 떨어져 자신을 바치겠다고 말하다" },
+            { en: 'index', ko: '색인, 지표; 색인을 달다', syn: 'guide, list, indicator, sign', ant: 'N/A', origin: "in(안에) + dex(말하다) → 안에 든 내용을 말해서 알려주는 색인" },
+            { en: 'fame', ko: '명성, 명망', syn: 'reputation, glory, celebrity, renown', ant: 'obscurity, infamy, anonymity', origin: "fa(me)(말하다) → 사람들 사이에 많이 말해지는 평판 높은 이름" },
+            { en: 'infant', ko: '유아; 유아용의, 초기의', syn: 'baby, child, toddler; early, new', ant: 'adult, grown-up; mature', origin: "in(아닌) + fa(말하다) + nt(명·접) → 아직 말을 하지 않는 어린 유아" },
+            { en: 'fate', ko: '운명, 숙명', syn: 'destiny, fortune, doom, lot', ant: 'choice, chance, free will', origin: "fa(te)(말하다) → 신이 말해서 따라야 하는 운명" },
+            { en: 'fable', ko: '우화, (꾸며낸) 이야기', syn: 'tale, story, myth, legend', ant: 'fact, truth, reality, history', origin: "fa(ble)(말하다) → 말하는 것, 즉 이야기 또는 우화" },
+            { en: 'profess', ko: '공언하다, 주장하다', syn: 'declare, state, announce, claim', ant: 'deny, conceal, disown, suppress', origin: "pro(앞에) + fess(말하다) → 남들 앞에서 공개적으로 말하다" },
+            { en: 'prophecy', ko: '예언(서), 예언 능력', syn: 'prediction, forecast, divination, revelation', ant: 'hindsight, history', origin: "pro(앞에) + phe(cy)(말하다) → 사건 발생보다 앞서 말하는 것" },
+            { en: 'announce', ko: '발표하다, 알리다, 선언하다', syn: 'declare, proclaim, report, broadcast', ant: 'suppress, hide, withhold, silence', origin: "an(-에) + nounc(e)(알리다) → 누군가에게 알리다" },
+            { en: 'pronounce', ko: '선언하다, 발음하다', syn: 'declare, articulate, utter, speak', ant: 'mumble, whisper, conceal', origin: "pro(앞에) + nounc(e)(알리다) → 사람들 앞에서 공개적으로 알리다" }
+        ],
+        "DAY 47": [
+            { en: 'cite', ko: '인용하다, (예나 이유를) 들다', syn: 'quote, mention, reference', ant: 'disregard, ignore', origin: "cit(e)(부르다) → 다른 사람의 말이나 글을 불러와서 인용하다" },
+            { en: 'excite', ko: '흥분시키다, 자극하다', syn: 'arouse, stimulate, provoke', ant: 'calm, soothe, bore', origin: "ex(밖으로) + cit(e)(부르다) → 감정을 밖으로 더 크게 불러일으키다, 즉 흥분시키다" },
+            { en: 'recite', ko: '암송하다, 낭독하다', syn: 'repeat, declaim, narrate', ant: 'read silently', origin: "re(다시) + cit(e)(부르다) → 시, 노래 등을 외워서 다시 부르다, 즉 암송하다" },
+            { en: 'vocabulary', ko: '어휘, 용어', syn: 'lexicon, terminology, words', ant: '', origin: "voc(abul)(부르다) + ary(명·접) → 어떤 것을 부르기 위한 이름, 즉 어휘" },
+            { en: 'advocate', ko: '지지자, 변호사 / 지지하다, 옹호하다', syn: 'supporter, proponent / support, defend', ant: 'opponent, critic / oppose', origin: "ad(~쪽으로) + voc(부르다) + ate(명·접) → 편을 들어주기 위해 누군가 쪽으로 불려온 지지자, 변호사" },
+            { en: 'vocation', ko: '천직, 직업, 사명감', syn: 'calling, career, mission', ant: 'hobby, pastime', origin: "voc(부르다) + ation(명·접) → 신이 불러서 하게 된 일, 즉 천직" },
+            { en: 'vocal', ko: '목소리의, 노래의 / 가창, 보컬', syn: 'oral, spoken, voiced', ant: 'instrumental, silent', origin: "voc(목소리) + al(형·접) → 목소리의, 목소리로 하는 노래의" },
+            { en: 'evoke', ko: '일깨우다, 환기시키다', syn: 'arouse, awaken, elicit', ant: 'suppress, repress', origin: "e(밖으로) + vok(e)(부르다) → 기억, 감정 등을 밖으로 불러 일깨우다" },
+            { en: 'provoke', ko: '(반응을) 유발하다, 화나게 하다', syn: 'incite, instigate, irritate', ant: 'appease, calm, mollify', origin: "pro(앞으로) + vok(e)(부르다) → 어떤 반응이 앞으로 나오게 불러서 유발하다" },
+            { en: 'invoke', ko: '빌다, 기원하다', syn: 'appeal to, pray to, solicit', ant: 'ignore', origin: "in(안에) + vok(e)(부르다) → 신, 법과 같은 큰 힘을 안에 불러들여 도움을 빌다" },
+            { en: 'vowel', ko: '모음 / 모음의', syn: 'vocalic sound', ant: 'consonant', origin: "vow(el)(목소리) → 목의 성대를 울려서 내는 소리, 즉 모음" },
+            { en: 'claim', ko: '주장하다, 요구하다 / 주장, 요구', syn: 'assert, maintain, demand', ant: 'deny, disclaim', origin: "claim(외치다) → 크게 외쳐 주장하다, 요구하다" },
+            { en: 'exclaim', ko: '외치다, 소리치다', syn: 'shout, cry out, yell', ant: 'whisper, murmur', origin: "ex(밖으로) + claim(외치다) → 밖으로 소리를 내서 외치다" },
+            { en: 'proclaim', ko: '선언하다, 분명히 나타내다', syn: 'declare, announce, state', ant: 'conceal, hide', origin: "pro(앞에) + claim(외치다) → 사람들 앞에서 외쳐 선언하다" },
+            { en: 'acclaim', ko: '환호하다, 호평하다 / 환호, 호평', syn: 'praise, applaud, cheer', ant: 'criticize, boo', origin: "ac(~쪽으로) + claim(외치다) → 상대 쪽으로 환호성을 외치다, 즉 환호하다" },
+            { en: 'council', ko: '의회, 위원회', syn: 'committee, board, assembly', ant: '', origin: "coun(함께) + cil(외치다) → 여럿이 모여서 함께 의견이나 주장을 외치는 의회" },
+            { en: 'audience', ko: '청중, 관중, 시청자', syn: 'spectators, listeners, viewers', ant: 'performers', origin: "audi(듣다) + ence(명·접) → 듣는 사람들의 무리, 즉 청중" },
+            { en: 'audition', ko: '오디션 / 오디션을 하다', syn: 'tryout, trial', ant: '', origin: "audi(t)(듣다) + ion(명·접) → 지원자의 노래 등을 듣고 평가하는 오디션" },
+            { en: 'auditory', ko: '귀의, 청각의', syn: 'aural, acoustic', ant: 'visual', origin: "audi(t)(듣다) + ory(형·접) → 듣는 귀의, 청각의" },
+            { en: 'auditorium', ko: '강당, 관객석', syn: 'hall, theater', ant: '', origin: "audi(t)(듣다) + orium(명·접(장소)) → 공연, 강연 등을 듣는 장소인 강당" },
+            { en: 'tone', ko: '어조, 음조, 색조, 분위기', syn: 'pitch, timbre, mood', ant: '', origin: "ton(e)(소리) → 말/음악 등의 소리가 내는 분위기, 즉 어조/음조" },
+            { en: 'intonation', ko: '억양', syn: 'inflection, cadence', ant: 'monotone', origin: "in(안에) + ton(소리) + ation(명·접) → 말소리 안에 포함된 높낮이, 즉 억양" },
+            { en: 'tune', ko: '곡조, 선율 / 조율하다, 맞추다', syn: 'melody, air / adjust, align', ant: 'misalign', origin: "tun(e)(소리) → 음이 있는 소리인 곡조, 소리를 조율하다" },
+            { en: 'melody', ko: '곡, 노래, 멜로디', syn: 'tune, song, music', ant: 'discord', origin: "mel(od)(노래 부르다) + y(명·접) → 음조에 따라 부르는 노래 또는 그 곡" },
+            { en: 'tragedy', ko: '비극, 비극적 사건', syn: 'disaster, catastrophe', ant: 'comedy, triumph', origin: "trag(염소) + ed(노래 부르다) + y(명·접) → 고대의 배우들이 염소 가죽을 입고 노래를 불렀던 비극" },
+            { en: 'applaud', ko: '박수를 치다, 갈채를 보내다', syn: 'clap, cheer, praise', ant: 'boo, condemn', origin: "ap(~에) + plaud(박수 치다) → 누군가에게 박수를 쳐 주다" },
+            { en: 'explode', ko: '터지다, 폭발하다', syn: 'burst, blow up, erupt', ant: 'implode', origin: "ex(밖으로) + plod(e)(박수 치다) → 박수를 쳐서 손 안의 것이 밖으로 터지다" }
+        ],
+        "DAY 48": [
+            { en: 'describe', ko: '서술하다, 묘사하다', syn: 'portray, depict, detail', ant: 'distort, confuse', origin: "de(아래로) + scrib(e)(쓰다) → 어떤 것에 대해 아래로 써 내려가며 서술하다, 묘사하다" },
+            { en: 'subscribe', ko: '가입하다, 구독하다', syn: 'register, sign up', ant: 'unsubscribe', origin: "sub(아래에) + scrib(e)(쓰다) → 신청서 아래쪽에 이름을 써서 가입하다, 구독하다" },
+            { en: 'prescribe', ko: '처방하다, 규정하다', syn: 'order, direct, specify', ant: 'prohibit', origin: "pre(전에) + scrib(e)(쓰다) → 환자가 약을 사기 전에 의사가 약을 정해서 써주다, 즉 처방하다" },
+            { en: 'script', ko: '대본, 원고 / 대본을 쓰다', syn: 'screenplay, text, manuscript', ant: '', origin: "script(쓰다) → 연극 등을 위해 쓴 대본, 대본을 쓰다" },
+            { en: 'autograph', ko: '서명, 사인 / 서명하다', syn: 'signature, sign', ant: '', origin: "auto(스스로) + graph(쓰다) → 스스로 자신의 이름을 쓴 것, 즉 서명 또는 사인" },
+            { en: 'biography', ko: '전기, 일대기', syn: 'life story, memoir', ant: '', origin: "bio(생애) + graph(쓰다) + y(명·접) → 누군가의 생애에 대해 쓴 전기, 일대기" },
+            { en: 'autobiography', ko: '자서전', syn: 'memoir', ant: '', origin: "auto(스스로) + biography(전기) → 스스로 쓴 자신의 전기, 즉 자서전" },
+            { en: 'photograph', ko: '사진 / 사진을 찍다', syn: 'picture, image, shot', ant: '', origin: "photo(빛) + graph(그리다) → 빛을 렌즈로 모아 필름에 찍어서 그린 그림, 즉 사진" },
+            { en: 'topography', ko: '지형(도), 지형학', syn: 'terrain, geography', ant: '', origin: "topograph(지역) + y(명·접) → 어떤 지역의 모양을 그린 것, 즉 지형(도)" },
+            { en: 'paragraph', ko: '단락, 절', syn: 'section, passage', ant: '', origin: "para(옆에) + graph(그리다) → 긴 글 옆에 경계를 그려서 나눈 단락" },
+            { en: 'program', ko: '프로그램, 계획(표) / 프로그램을 짜다', syn: 'schedule, plan, agenda', ant: '', origin: "pro(앞에) + gram(쓰다) → 교육, 행사 등을 위해 앞에 써둔 계획, 프로그램" },
+            { en: 'diagram', ko: '도표, 도식, 도형', syn: 'chart, graph, figure', ant: '', origin: "dia(가로질러) + gram(그리다) → 전체를 가로지르는 모습을 간단히 그린 도표, 도식" },
+            { en: 'lecture', ko: '강의, 강연 / 강의하다', syn: 'speech, talk, discourse', ant: '', origin: "lect(ure)(읽다+명·접) → 원고, 책 등을 읽어 가르치는 것, 즉 강의 또는 강연" },
+            { en: 'dialect', ko: '사투리, 방언', syn: 'vernacular, accent', ant: 'standard language', origin: "dia(가로질러) + lect(읽다) → 먼 거리를 가로질러 가면 다르게 읽는 것, 즉 사투리" },
+            { en: 'collect', ko: '모으다, 수집하다', syn: 'gather, accumulate, assemble', ant: 'scatter, disperse', origin: "col(함께) + lect(모으다) → 비슷한 것들끼리 함께 모으다" },
+            { en: 'recollect', ko: '기억해 내다, 생각해 내다', syn: 'recall, remember', ant: 'forget', origin: "re(다시) + col(함께) + lect(모으다) → 흩어진 기억을 다시 함께 모아 기억해 내다" },
+            { en: 'elect', ko: '선출하다, 선택하다', syn: 'choose, vote for, select', ant: 'reject, dismiss', origin: "e(밖으로) + lect(선택하다) → 후보들 중에서 선택해서 밖으로 뽑아내다, 즉 선출하다" },
+            { en: 'intellect', ko: '지성, 지적 능력', syn: 'intelligence, reason, mind', ant: 'stupidity', origin: "intellect(사이에 선택하다) → 여럿 사이에서 맞는 답을 선택하는 지성, 지적 능력" },
+            { en: 'legend', ko: '전설, 전설적 인물', syn: 'myth, fable, tale', ant: 'fact, history', origin: "leg(end)(읽다) → 예로부터 읽어온 이야기, 즉 전설" },
+            { en: 'elegant', ko: '품위 있는, 우아한', syn: 'graceful, stylish, refined', ant: 'clumsy, vulgar', origin: "e(밖으로) + leg(선택하다) + ant(형·접) → 여럿 중 선택해서 밖으로 내보일 만큼 품위 있고 우아한" },
+            { en: 'diligent', ko: '근면한, 성실한', syn: 'hardworking, industrious', ant: 'lazy, idle', origin: "diligent(떨어져 선택하다 + 형·접) → 여럿 중 일꾼으로 따로 떨어뜨려 선택할 만큼 근면한" },
+            { en: 'literature', ko: '문학, 문예', syn: 'writings', ant: '', origin: "liter(글자) + at(e)(형·접) + ure(명·접) → 여러 형태의 예술 중 글자로 된 것, 즉 문학" },
+            { en: 'literal', ko: '문자 그대로의, 문자의', syn: 'exact, verbatim, actual', ant: 'figurative', origin: "liter(글자) + al(형·접) → 글자의, 글자 그대로의" },
+            { en: 'literate', ko: '글을 읽고 쓸 줄 아는 / 글을 아는 사람', syn: 'educated, lettered', ant: 'illiterate', origin: "liter(글자) + ate(형·접) → 글자를 아는" },
+            { en: 'sign', ko: '표지판, 기호, 징후 / 신호를 보내다, 서명하다', syn: 'mark, signal, indication', ant: '', origin: "sign(표시) → 상황/사물/장소 등을 표시하여 알리는 표지판, 기호" },
+            { en: 'signal', ko: '신호 / 신호를 보내다', syn: 'cue, indication, gesture', ant: '', origin: "sign(표시) + al(명·접) → 상황을 알리기 위해 보내는 표시, 즉 신호" },
+            { en: 'significant', ko: '중요한, 의미 있는, 상당한', syn: 'important, substantial, meaningful', ant: 'insignificant, trivial', origin: "sign(i)(표시) + fic(만들다) + ant(형·접) → 특별히 표시를 만들어 둘 만큼 중요한, 의미 있는" },
+            { en: 'assign', ko: '배정하다, 맡기다', syn: 'allocate, allot, designate', ant: 'withdraw', origin: "as(~에) + sign(표시) → 어떤 것에 누구 것인지 표시하여 그 사람에게 배정하다" },
+            { en: 'designate', ko: '지정하다, 지명하다', syn: 'appoint, nominate, select', ant: '', origin: "de(아래로) + sign(표시) + ate(동·접) → 누군가의 아래에 특별히 표시하여 어떤 역할을 지정하다" },
+            { en: 'resign', ko: '사임하다, 그만두다', syn: 'quit, step down', ant: 'join', origin: "re(뒤로) + sign(표시) → 직책 표시에서 뒤로 물러나 그 직책을 사임하다" },
+            { en: 'seal', ko: '밀봉하다, 봉인하다 / 직인', syn: 'close, shut, stamp', ant: 'open, unseal', origin: "seal(표시) → 열어보지 않은 상태임을 표시하기 위해 밀봉하다" }
+        ],
+        "DAY 49": [
+            { en: 'special', ko: '특별한 / 특별한 것', syn: 'exceptional, unique, distinct', ant: 'ordinary, common', origin: "spec(보다) + ial(형·접) → 다른 것과 달라서 보게 되는, 즉 특별한" },
+            { en: 'specialize', ko: '특수화하다, 전문으로 하다', syn: 'concentrate, focus', ant: 'generalize', origin: "special(특별한) + ize(동·접) → 특별하게 만들다, 어떤 일을 특별히 전문으로 하다" },
+            { en: 'specific', ko: '구체적인, 특정한', syn: 'precise, definite, particular', ant: 'vague, general', origin: "spec(i)(보다) + fic(만들다) → 볼 수 있도록 형태가 다 만들어져 모습이 구체적인" },
+            { en: 'species', ko: '(분류상의) 종, 종류', syn: 'type, kind, breed', ant: '', origin: "spec(ies)(보다) → 생물을 보이는 모습에 따라 나눈 것, 즉 종" },
+            { en: 'expect', ko: '예상하다, 기대하다', syn: 'anticipate, await, foresee', ant: 'doubt', origin: "ex(밖으로) + (s)pect(보다) → 밖을 내다보며 다가올 일을 예상하다" },
+            { en: 'spectator', ko: '관중, 구경꾼', syn: 'onlooker, viewer', ant: 'participant', origin: "spect(보다) + at(e)(동·접) + or(명·접(사람)) → 보는 사람, 즉 관중" },
+            { en: 'suspect', ko: '의심하다 / 용의자 / 의심스러운', syn: 'distrust, doubt', ant: 'trust', origin: "su(아래로) + spect(보다) → 상대를 위에서 아래로 훑어보며 의심하다" },
+            { en: 'spectacular', ko: '장관인, 호화로운 / 화려한 공연', syn: 'magnificent, impressive', ant: 'unimpressive, dull', origin: "spect(a)(보다) + cul + ar(형·접) → 볼 만한, 즉 장관인" },
+            { en: 'spectrum', ko: '범위, 영역, 빛의 띠', syn: 'range, scope', ant: '', origin: "spect(rum)(보다) → 사람이 볼 수 있는 빛의 범위 또는 특정 영역" },
+            { en: 'inspect', ko: '검사하다, 점검하다', syn: 'examine, check, investigate', ant: 'overlook, ignore', origin: "inspect(안에 보다) → 안에 문제가 없는지 살펴보다, 즉 검사하다" },
+            { en: 'vision', ko: '시력, 시야, 환상', syn: 'eyesight, sight, foresight', ant: 'blindness', origin: "vis(보다) + ion(명·접) → 보는 능력 또는 범위, 즉 시력 또는 시야" },
+            { en: 'evident', ko: '분명한, 명백한', syn: 'obvious, clear, apparent', ant: 'unclear, obscure', origin: "e(밖으로) + vid(보다) + ent(형·접) → 밖으로 잘 보이는, 즉 분명한" },
+            { en: 'view', ko: '견해, 관점 / 생각하다', syn: 'opinion, perspective', ant: '', origin: "view(보다) → 어떤 일을 보는 견해, 관점" },
+            { en: 'review', ko: '검토, 복습 / 검토하다, 복습하다', syn: 're-examination, evaluation', ant: '', origin: "re(다시) + view(보다) → 봤던 것을 다시 보는 검토 또는 복습" },
+            { en: 'envy', ko: '부러워하다 / 부러움', syn: 'jealousy, covet', ant: 'contentment', origin: "en(위에) + vy(보다) → 위에 있는 것을 올려다보며 부러워하다" },
+            { en: 'survey', ko: '(설문) 조사 / 조사하다', syn: 'poll, study', ant: '', origin: "sur(위에) + vey(보다) → 어떤 것을 위에서 두루 살펴서 보는 조사" },
+            { en: 'witness', ko: '목격자, 증인 / 목격하다', syn: 'observer, bystander', ant: '', origin: "wit(보다) + ness(명·접) → 사건을 본 사람, 즉 목격자" },
+            { en: 'optical', ko: '눈의, 시각의', syn: 'visual, ocular', ant: '', origin: "optical(보다 + 형·접) → 보는 눈의, 시각의" },
+            { en: 'option', ko: '선택(권), 옵션', syn: 'choice, alternative', ant: 'obligation', origin: "option(선택하다 + 명·접) → 선택, 선택할 수 있는 권리" },
+            { en: 'adopt', ko: '채택하다, 입양하다', syn: 'accept, embrace, select', ant: 'reject, abandon', origin: "adopt(~쪽으로 선택하다) → 선택해서 내 쪽으로 가져오다, 즉 채택 또는 입양하다" },
+            { en: 'opinion', ko: '의견, 견해', syn: 'view, belief, sentiment', ant: 'fact', origin: "opinion(선택하다 + 명·접) → 여러 생각 중 선택하여 취한 의견" },
+            { en: 'phase', ko: '단계, 국면, 모습', syn: 'stage, period, state', ant: '', origin: "phas(e)(보여주다) → 때에 따라 보여지는 모습, 즉 단계 또는 국면" },
+            { en: 'emphasize', ko: '강조하다', syn: 'highlight, stress', ant: 'understate, ignore', origin: "emphasize(안에 보여주다 + 동·접) → 안에 있는 여럿 중에 특별히 잘 보여주려고 강조하다" },
+            { en: 'phenomenon', ko: '현상, 사건', syn: 'occurrence, event', ant: '', origin: "phen(omenon)(보이다) → 밖으로 드러나서 보이는 모양새, 즉 현상" }
+        ],
+        "DAY 50": [
+            { en: 'popular', ko: '인기 있는, 대중적인', syn: 'well-liked, common', ant: 'unpopular', origin: "popul(사람들) + ar(형·접) → 사람들에게 인기 있는" },
+            { en: 'populate', ko: '거주하다, 살다', syn: 'inhabit, dwell, reside', ant: '', origin: "popul(사람들) + ate(동·접) → 사람들이 거주하다" },
+            { en: 'overpopulation', ko: '인구 과잉', syn: 'overcrowding', ant: 'depopulation', origin: "over(과도하게) + population(사람들 + 명·접) → 사람들이 과도하게 많음, 즉 인구 과잉" },
+            { en: 'public', ko: '대중의, 공공의 / 대중', syn: 'civic, communal', ant: 'private', origin: "public(사람들 + 형·접) → 한 사람이 아닌 여러 사람들의, 즉 대중의" },
+            { en: 'republic', ko: '공화국', syn: 'commonwealth', ant: 'monarchy', origin: "re(것) + public(대중의) → 대중의 것인 나라, 즉 주권이 대중에게 있는 공화국" },
+            { en: 'publish', ko: '출판하다, 발행하다', syn: 'print, issue', ant: '', origin: "publish(사람들 + 동·접) → 사람들이 볼 수 있게 출판하다" },
+            { en: 'civil', ko: '시민의, 민간의', syn: 'civic, civilian', ant: 'military', origin: "civil(시민) → 시민의" },
+            { en: 'civilize', ko: '문명화하다, 개화하다', syn: 'refine, educate', ant: 'barbarize', origin: "civil(시민) + ize(동·접) → 원시 상태에서 발전하여 시민으로 문명화하다" },
+            { en: 'civic', ko: '(도)시의, 시민의', syn: 'municipal, urban', ant: 'rural', origin: "civ(il)(시, 시민) + ic(형·접) → 시의, 시민의" },
+            { en: 'citizen', ko: '시민, 도시인, 국민', syn: 'resident, national', ant: 'alien, foreigner', origin: "citi(z)(시) + en(명·접) → 도시에 사는 시민" },
+            { en: 'society', ko: '사회, 집단', syn: 'community, association', ant: 'individual', origin: "soci(친구, 동료) + ety(명·접) → 친구, 동료가 모여서 이룬 사회" },
+            { en: 'social', ko: '사회의, 사교의', syn: 'communal, collective', ant: 'solitary', origin: "social(친구, 동료 + 형·접) → 친구, 동료들과 함께 이루는 사회의" },
+            { en: 'antisocial', ko: '반사회적인', syn: 'disruptive, alienated', ant: 'social', origin: "anti(반대의) + social(사회적인) → 사회에 반대하는, 즉 반사회적인" },
+            { en: 'associate', ko: '연관 짓다, 연상하다 / 동료', syn: 'connect, link / partner', ant: 'separate', origin: "as(~에) + soci(친구, 동료) + ate(동·접) → 친구, 동료와 관계를 맺듯이 다른 대상에 연관을 짓다" },
+            { en: 'sociology', ko: '사회학', syn: 'social science', ant: '', origin: "soci(o)(친구, 동료) + log(말) + y(명·접) → 친구나 동료 집단 등을 포함한 사회에 대해 말하는 사회학" },
+            { en: 'amateur', ko: '아마추어, 비전문가', syn: 'novice, layman', ant: 'professional, expert', origin: "ama(t)(사랑) + eur(사람) → 어떤 일을 직업으로가 아닌 사랑을 가지고 하는 아마추어" },
+            { en: 'enemy', ko: '적, 적군', syn: 'foe, adversary', ant: 'friend, ally', origin: "en(아닌) + emy(친구) → 친구가 아닌 상대, 즉 적" },
+            { en: 'host', ko: '주최자, 주인 / 주최하다', syn: 'organizer, presenter', ant: 'guest', origin: "host(손님) → 손님을 맞는 사람, 즉 행사의 주최자 또는 주인" },
+            { en: 'hospitality', ko: '환대, 후한 대접', syn: 'warmth, friendliness', ant: 'hostility', origin: "hospital(손님) + ity(형·접, 명·접) → 손님을 잘 대하는 환대" },
+            { en: 'hospitalize', ko: '입원시키다', syn: 'admit', ant: 'discharge', origin: "hospital(손님) + ize(형·접, 동·접) → 아픈 사람을 손님으로 맞다, 즉 입원시키다" },
+            { en: 'hostile', ko: '적대적인', syn: 'unfriendly, antagonistic', ant: 'friendly', origin: "hostile(낯선 사람 + 형·접) → 낯선 사람을 대하듯 적대적인" },
+            { en: 'hostage', ko: '인질, 볼모', syn: 'captive, prisoner', ant: 'captor', origin: "hostage(낯선 사람 + 명·접) → 낯선 사람이 무언가를 요구하며 담보로 잡아둔 인질 또는 볼모" },
+            { en: 'patron', ko: '후원자, 단골 고객', syn: 'sponsor, backer', ant: '', origin: "patr(on)(아버지) → 아버지와 같이 돌봐주는 후원자" },
+            { en: 'patriot', ko: '애국자', syn: 'nationalist', ant: 'traitor', origin: "patr(iot)(아버지) → 아버지의 나라, 즉 조국을 사랑하는 애국자" },
+            { en: 'pattern', ko: '양식, 패턴, 무늬', syn: 'design, model', ant: '', origin: "patter(n)(아버지) → 아버지처럼 다른 것의 원형 또는 본이 되는 것, 즉 양식 또는 패턴" }
+        ]
+    };
+
+    // 새로 제공된 구글 앱스 스크립트 URL
+    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzGqCqUo_HfVYOP4ezWuogvmXhkjcAJtiTe3V0M6ISq9aZsBnPypJXk1Zk9M0LyyZtB/exec';
+
+    // ==========================================
+    // [앱 로직]
+    // ==========================================
+    const app = {
+        stage: 1, 
+        currentDay: "DAY 41", // 현재 선택된 DAY (기본값 변경)
+        queue: [],
+        currentWord: null,
+        totalInitial: 0,
+        wrongCount: 0, 
+        userId: '',
+        startTime: null, 
+        
+        init: function() {
+            document.getElementById('user-id').addEventListener('change', (e) => {
+                this.userId = e.target.value;
+            });
+            document.getElementById('day-select').addEventListener('change', (e) => {
+                this.currentDay = e.target.value;
+            });
+        },
+
+        startSequence: function() {
+            const idInput = document.getElementById('user-id').value.trim();
+            const dayInput = document.getElementById('day-select').value;
+
+            if (!idInput) {
+                // alert() 대신 시각적 효과
+                const input = document.getElementById('user-id');
+                input.classList.add('error');
+                input.placeholder = "이름을 꼭 입력해주세요!";
+                setTimeout(() => input.classList.remove('error'), 1000);
+                input.focus();
+                return;
+            }
+            this.userId = idInput;
+            this.currentDay = dayInput;
+            
+            // DAY Badge 업데이트
+            const dayBadge = document.getElementById('day-badge');
+            dayBadge.textContent = this.currentDay;
+            dayBadge.style.display = 'inline-block';
+
+            this.startStage(1); 
+        },
+
+        startStage: function(stageNum) {
+            this.stage = stageNum;
+            
+            // 선택된 Day의 데이터를 로드
+            if (!VOCA_DB[this.currentDay]) {
+                // alert("데이터 로드 오류"); // 예외 처리도 조용히
+                console.error("데이터 로드 오류");
+                return;
+            }
+            
+            // [수정됨] 스테이지별로 유효한 데이터만 필터링하여 큐 구성
+            let targetData = VOCA_DB[this.currentDay];
+            
+            // Stage 3(동의어): syn 데이터가 있는 것만
+            if (stageNum === 3) {
+                targetData = targetData.filter(w => w.syn && w.syn.trim() !== "");
+            }
+            // Stage 4(반의어): ant 데이터가 있는 것만
+            else if (stageNum === 4) {
+                targetData = targetData.filter(w => w.ant && w.ant.trim() !== "");
+            }
+            
+            this.queue = [...targetData]; // 필터링된 데이터 복사
+            this.queue.sort(() => Math.random() - 0.5); 
+            
+            this.totalInitial = this.queue.length;
+            this.wrongCount = 0;
+            this.startTime = new Date(); 
+
+            // 필터링 결과 문제가 하나도 없으면 바로 다음 단계로 이동
+            if (this.totalInitial === 0) {
+                this.finishStage();
+                return;
+            }
+
+            // UI 업데이트
+            document.getElementById('view-home').classList.remove('active');
+            document.getElementById('view-result').classList.remove('active');
+            document.getElementById('view-quiz').classList.add('active');
+            
+            document.getElementById('home-btn').style.display = 'inline-block';
+            document.getElementById('home-btn').onclick = () => location.reload();
+            
+            const badges = ["", "Step 1. 영단어→뜻", "Step 2. 뜻→영단어", "Step 3. 동의어 찾기", "Step 4. 반의어 찾기"];
+            document.getElementById('stage-badge').textContent = badges[stageNum];
+            document.getElementById('stage-badge').style.display = 'inline-block';
+
+            this.nextQuestion();
+        },
+
+        nextQuestion: function() {
+            if (this.queue.length === 0) {
+                this.finishStage();
+                return;
+            }
+
+            const remain = this.queue.length;
+            const progress = ((this.totalInitial - remain) / this.totalInitial) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('remain-count').textContent = `남은 문제: ${remain}`;
+            document.getElementById('wrong-count').textContent = `오답: ${this.wrongCount}`;
+
+            this.currentWord = this.queue.shift(); 
+            this.renderQuestion();
+        },
+
+        renderQuestion: function() {
+            const word = this.currentWord;
+            const displayEl = document.getElementById('word-display');
+            const choicesEl = document.getElementById('choices');
+            choicesEl.innerHTML = '';
+
+            let questionText = '';
+            let labelText = '';
+            let answerText = '';
+            let distractors = [];
+
+            if (this.stage === 1) {
+                labelText = "다음 단어의 뜻은?";
+                questionText = word.en;
+                answerText = word.ko;
+                distractors = this.getDistractors('ko', word.ko);
+            }
+            else if (this.stage === 2) {
+                labelText = "다음 뜻을 가진 영단어는?";
+                questionText = word.ko;
+                answerText = word.en;
+                distractors = this.getDistractors('en', word.en);
+            }
+            else if (this.stage === 3) {
+                labelText = "다음 단어의 동의어(Synonym)는?";
+                questionText = word.en;
+                answerText = word.syn || "(동의어 없음)";
+                distractors = this.getDistractors('syn', word.syn);
+            }
+            else if (this.stage === 4) {
+                labelText = "다음 단어의 반의어(Antonym)는?";
+                questionText = word.en;
+                answerText = word.ant || "(반의어 없음)";
+                distractors = this.getDistractors('ant', word.ant);
+            }
+
+            displayEl.innerHTML = `<span class="label">${labelText}</span>${questionText}`;
+            
+            let options = [answerText, ...distractors];
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'choice';
+                btn.textContent = opt === "" ? "(없음)" : opt;
+                
+                // 정답이 비어있거나 '없음'인 경우 처리 (데이터에 빈 문자열이 있을 수 있음)
+                if(opt === answerText) {
+                    btn.onclick = () => this.checkAnswer(opt, answerText, btn);
+                } else {
+                    btn.onclick = () => this.checkAnswer(opt, answerText, btn);
+                }
+                choicesEl.appendChild(btn);
+            });
+        },
+
+        getDistractors: function(key, currentVal) {
+            // 현재 선택된 Day의 데이터 풀에서 오답을 추출
+            const currentPool = VOCA_DB[this.currentDay];
+            const pool = currentPool
+                .filter(item => item[key] !== currentVal && item[key] !== "") // 정답 아니고 빈값 아닌것
+                .map(item => item[key]);
+            
+            pool.sort(() => Math.random() - 0.5);
+            
+            // 풀이 부족할 경우 기본값 추가
+            while (pool.length < 3) { pool.push('-'); }
+            return pool.slice(0, 3);
+        },
+
+        checkAnswer: function(selected, correct, btnElement) {
+            const choices = document.querySelectorAll('.choice');
+            choices.forEach(c => c.style.pointerEvents = 'none');
+
+            if (selected === correct) {
+                btnElement.classList.add('correct');
+                this.playSound(true);
+                setTimeout(() => this.nextQuestion(), 600);
+            } else {
+                btnElement.classList.add('wrong');
+                this.playSound(false);
+                this.wrongCount++;
+                this.queue.push(this.currentWord); 
+
+                this.sendData(this.currentWord);
+
+                choices.forEach(c => {
+                    if (c.textContent === correct) c.classList.add('correct');
+                });
+
+                setTimeout(() => {
+                    this.showWrongModal(correct);
+                }, 500);
+            }
+        },
+
+        showWrongModal: function(correctAnswer) {
+            const modal = document.getElementById('wrong-modal');
+            const content = document.getElementById('modal-content');
+            const nextBtn = document.getElementById('modal-next-btn');
+
+            const w = this.currentWord;
+            const displayAnswer = correctAnswer === "" ? "(없음)" : correctAnswer;
+            
+            let html = `<p style="color:#666; margin-bottom:5px;">정답은:</p>`;
+            html += `<h1 style="color:var(--primary); margin:0 0 15px 0;">${displayAnswer}</h1>`;
+            
+            html += `<div style="background:#f5f5f5; padding:15px; border-radius:10px; text-align:left; font-size:15px; color:#444;">`;
+            html += `<p style="margin:4px 0;"><strong>단어:</strong> ${w.en}</p>`;
+            html += `<p style="margin:4px 0;"><strong>뜻:</strong> ${w.ko}</p>`;
+            html += `<p style="margin:4px 0;"><strong>동의어:</strong> ${w.syn || '-'}</p>`;
+            html += `<p style="margin:4px 0;"><strong>반의어:</strong> ${w.ant || '-'}</p>`;
+            
+            if (w.origin) {
+                html += `<div class="origin-box">
+                             <span class="origin-title">💡 어원 풀이</span>
+                             ${w.origin}
+                          </div>`;
+            }
+            html += `</div>`;
+
+            content.innerHTML = html;
+            modal.classList.add('show');
+
+            nextBtn.onclick = () => {
+                modal.classList.remove('show');
+                this.nextQuestion();
+            };
+        },
+
+        finishStage: function() {
+            if (this.stage < 4) {
+                const modal = document.getElementById('stage-clear-modal');
+                const msg = document.getElementById('stage-clear-msg');
+                const btn = document.getElementById('next-stage-btn');
+                
+                const nextStepNames = ["", "", "뜻 찾기(Step 2)", "동의어(Step 3)", "반의어(Step 4)"];
+                msg.innerHTML = `수고하셨습니다!<br>곧 <strong>${nextStepNames[this.stage + 1]}</strong> 학습이 시작됩니다.`;
+                
+                modal.classList.add('show');
+                
+                btn.onclick = () => {
+                    modal.classList.remove('show');
+                    this.startStage(this.stage + 1);
+                };
+            } else {
+                document.getElementById('view-quiz').classList.remove('active');
+                document.getElementById('view-result').classList.add('active');
+            }
+        },
+
+        getDuration: function() {
+            if (!this.startTime) return "00:00";
+            const now = new Date();
+            const diffMs = now - this.startTime;
+            const diffSec = Math.floor(diffMs / 1000);
+            const min = Math.floor(diffSec / 60);
+            const sec = diffSec % 60;
+            return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        },
+
+        sendData: function(wrongWordObj) {
+            if(!GOOGLE_SHEET_URL) return;
+
+            const data = {
+                name: this.userId,                  
+                day: `${this.currentDay} - Stage ${this.stage}`, // DAY 정보와 스테이지 함께 전송
+                score: `진행중 (${this.wrongCount}회 오답)`, 
+                wrongWords: wrongWordObj ? `${wrongWordObj.en} (${wrongWordObj.ko})` : "없음", 
+                duration: this.getDuration()        
+            };
+            
+            fetch(GOOGLE_SHEET_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(() => {
+                console.log("오답 데이터 전송 완료");
+            }).catch(e => console.log('전송 실패', e));
+        },
+
+        playSound: function(isCorrect) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.2);
+            }
+        }
+    };
+
+    app.init();
+    </script>
+</body>
+</html>
